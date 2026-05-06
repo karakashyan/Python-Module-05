@@ -32,7 +32,6 @@ class NumericProcessor(DataProcessor):
             )
         return False
 
-
     def ingest(self, data: int | float | list[int | float]) -> None:
         DataProcessor._storage(DataProcessor._rank, data)
 
@@ -50,6 +49,7 @@ class TextProcessor(DataProcessor):
 
     def ingest(self, data: str | list[str]) -> None:
         ...
+
 
 class LogProcessor(DataProcessor):
     def validate(self, data: Any) -> bool:
@@ -72,4 +72,6 @@ class LogProcessor(DataProcessor):
     def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
         ...
 
+
 if __name__ == "__main__":
+    ...
