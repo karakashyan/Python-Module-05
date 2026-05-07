@@ -5,7 +5,7 @@ from typing import Any
 class DataProcessor(ABC):
     def __init__(self) -> None:
         super().__init__()
-        self._storage = []
+        self._storage: list[tuple[int, str]] = []
         self._rank = 0
 
     @abstractmethod
@@ -17,11 +17,10 @@ class DataProcessor(ABC):
         ...
 
     def output(self) -> tuple[int, str]:
-        ...
+        return self._storage.pop(0)
 
 
 class NumericProcessor(DataProcessor):
-
     def validate(self, data: Any) -> bool:
         if isinstance(data, (int, float)) and not isinstance(data, bool):
             return True
@@ -33,7 +32,12 @@ class NumericProcessor(DataProcessor):
         return False
 
     def ingest(self, data: int | float | list[int | float]) -> None:
-        DataProcessor._storage(DataProcessor._rank, data)
+        if not self.validate(data):
+            raise ValueError("Improper numeric data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, str(i)))
+            self._rank += 1
 
 
 class TextProcessor(DataProcessor):
@@ -48,7 +52,12 @@ class TextProcessor(DataProcessor):
         return False
 
     def ingest(self, data: str | list[str]) -> None:
-        ...
+        if not self.validate(data):
+            raise ValueError("Improper text data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, i))
+            self._rank += 1
 
 
 class LogProcessor(DataProcessor):
@@ -70,8 +79,38 @@ class LogProcessor(DataProcessor):
         return False
 
     def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
-        ...
+        if not self.validate(data):
+            raise ValueError("Improper log data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, f"{': '.join(i.values())}"))
+            self._rank += 1
 
 
 if __name__ == "__main__":
-    ...
+    obj = NumericProcessor()
+    print("=== Code Nexus - Data Processor ===")
+    print()
+    print("Testing Numeric Processor...")
+    print(f"Trying to validate input '42': {obj.validate(42)}")
+    print(f"Trying to validate input 'Hello': {obj.validate('Hello')}")
+    print("Test invalid ingestion of string 'foo' without prior validation:")
+    try:
+        obj.ingest('foo')
+    except ValueError as e:
+        print(f"Got exception: {e}")
+    l1: list[int | float] = [1, 2, 3, 4, 5]
+    print(f"Processing data: {l1}")
+    try:
+        obj.ingest(l1)
+    except ValueError as e:
+        print(f"Got exception: {e}")
+    print("Extracting 3 values...")
+    for _ in range(3):
+        x, y = obj.output()
+        print(f"Numeric value {x}: {y}")
+    print()
+    print("Testing Text Processor...")
+    print(f"Trying to validate input '42': {obj.validate(42)}")
+    l2 = ['Hello', 'Nexus', 'World']
+    print(f"Processing data: {l2}")
