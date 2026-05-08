@@ -88,29 +88,47 @@ class LogProcessor(DataProcessor):
 
 
 if __name__ == "__main__":
-    obj = NumericProcessor()
+    nump = NumericProcessor()
     print("=== Code Nexus - Data Processor ===")
     print()
     print("Testing Numeric Processor...")
-    print(f"Trying to validate input '42': {obj.validate(42)}")
-    print(f"Trying to validate input 'Hello': {obj.validate('Hello')}")
+    print(f"Trying to validate input '42': {nump.validate(42)}")
+    print(f"Trying to validate input 'Hello': {nump.validate('Hello')}")
     print("Test invalid ingestion of string 'foo' without prior validation:")
     try:
-        obj.ingest('foo')
+        nump.ingest('foo')  # type: ignore[arg-type]
     except ValueError as e:
         print(f"Got exception: {e}")
     l1: list[int | float] = [1, 2, 3, 4, 5]
     print(f"Processing data: {l1}")
-    try:
-        obj.ingest(l1)
-    except ValueError as e:
-        print(f"Got exception: {e}")
+    nump.ingest(l1)
     print("Extracting 3 values...")
     for _ in range(3):
-        x, y = obj.output()
+        x, y = nump.output()
         print(f"Numeric value {x}: {y}")
     print()
+
+    tp = TextProcessor()
     print("Testing Text Processor...")
-    print(f"Trying to validate input '42': {obj.validate(42)}")
-    l2 = ['Hello', 'Nexus', 'World']
+    print(f"Trying to validate input '42': {tp.validate(42)}")
+    l2: list[str] = ['Hello', 'Nexus', 'World']
     print(f"Processing data: {l2}")
+    tp.ingest(l2)
+    print("Extracting 1 value...")
+    x, y = tp.output()
+    print(f"Text value {x}: {y}")
+    print()
+
+    lp = LogProcessor()
+    print("Testing Log Processor...")
+    print(f"Trying to validate input 'Hello': {lp.validate('Hello')}")
+    l3: list[dict[str, str]] = [
+            {'log_level': 'NOTICE', 'log_message': 'Connection to server'},
+            {'log_level': 'ERROR', 'log_message': 'Unauthorized access!!'}
+         ]
+    print(f"Processing data: {l3}")
+    lp.ingest(l3)
+    print("Extracting 2 values...")
+    for _ in range(2):
+        x, y = lp.output()
+        print(f"Log entry {x}: {y}")

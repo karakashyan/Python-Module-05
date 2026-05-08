@@ -1,0 +1,103 @@
+from abc import ABC, abstractmethod
+from typing import Any
+import typing
+
+
+class DataProcessor(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        self._storage: list[tuple[int, str]] = []
+        self._rank = 0
+
+    @abstractmethod
+    def validate(self, data: Any) -> bool:
+        ...
+
+    @abstractmethod
+    def ingest(self, data: Any) -> None:
+        ...
+
+    def output(self) -> tuple[int, str]:
+        return self._storage.pop(0)
+
+
+class NumericProcessor(DataProcessor):
+    def validate(self, data: Any) -> bool:
+        if isinstance(data, (int, float)) and not isinstance(data, bool):
+            return True
+        if isinstance(data, list):
+            return all(
+                isinstance(i, (int, float)) and not isinstance(i, bool)
+                for i in data
+            )
+        return False
+
+    def ingest(self, data: int | float | list[int | float]) -> None:
+        if not self.validate(data):
+            raise ValueError("Improper numeric data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, str(i)))
+            self._rank += 1
+
+
+class TextProcessor(DataProcessor):
+    def validate(self, data: Any) -> bool:
+        if isinstance(data, str):
+            return True
+        if isinstance(data, list):
+            return all(
+                isinstance(i, str)
+                for i in data
+            )
+        return False
+
+    def ingest(self, data: str | list[str]) -> None:
+        if not self.validate(data):
+            raise ValueError("Improper text data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, i))
+            self._rank += 1
+
+
+class LogProcessor(DataProcessor):
+    def validate(self, data: Any) -> bool:
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    return False
+            return True
+        if isinstance(data, list):
+            return all(
+                isinstance(i, dict) and
+                all(
+                    isinstance(key, str) and isinstance(value, str)
+                    for key, value in i.items()
+                )
+                for i in data
+            )
+        return False
+
+    def ingest(self, data: dict[str, str] | list[dict[str, str]]) -> None:
+        if not self.validate(data):
+            raise ValueError("Improper log data")
+        items = data if isinstance(data, list) else [data]
+        for i in items:
+            self._storage.append((self._rank, f"{': '.join(i.values())}"))
+            self._rank += 1
+
+class DataStream:
+    def __init__(self) -> None:
+            self._processors: list[DataProcessor] = []
+    def register_processor(self, proc: DataProcessor) -> None:
+        self._processors.append(proc)
+    def process_stream(self, stream: list[typing.Any]) -> None:
+
+
+if __name__ == "__main__":
+    nump = NumericProcessor()
+    print("=== Code Nexus - Data Stream ===")
+    print()
+    print("Initialize Data Stream...")
+    print("== DataStream statistics ==")
